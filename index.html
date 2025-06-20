@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Transactions Viewer</title>
+  <title>Ajjsh Transactions Viewer</title>
   <style>
     pre {
       font-size: 12px;
@@ -23,15 +24,17 @@
     );
 
     let fetching = false;
-    let isFirst = true; // لتنسيق الفاصلة بين المعاملات
+    let isFirst = true;
 
     async function fetchTransactions() {
       if (fetching) return;
       fetching = true;
 
-      const pathParts = window.location.pathname.split("/").filter(Boolean);
-      let address = "34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo";
+      const basePath = "/Ajjsh";
+      const pathParts = window.location.pathname.replace(basePath, "").split("/").filter(Boolean);
 
+      // استخرج العنوان دائمًا من الرابط /api/address/{address}/txs
+      let address = null;
       if (
         pathParts.length >= 4 &&
         pathParts[0] === "api" &&
@@ -39,6 +42,11 @@
         pathParts[3] === "txs"
       ) {
         address = pathParts[2];
+      }
+
+      if (!address) {
+        document.getElementById("result").textContent = "❌ لم يتم العثور على عنوان صالح في الرابط.";
+        return;
       }
 
       let lastTxId = null;
@@ -73,10 +81,11 @@
 
         localStorage.setItem("processedTxIds", JSON.stringify([...processedTxIds]));
         const resultDiv = document.getElementById("result");
-        resultDiv.innerHTML = resultDiv.innerHTML.replace(/,\s*$/, "]"); // استبدال آخر فاصلة بـ ]
+        resultDiv.innerHTML = resultDiv.innerHTML.replace(/,\s*$/, "");
         console.log(`Fetched ${fetchedCount} transactions!`);
       } catch (error) {
         console.error("Error fetching transactions:", error);
+        document.getElementById("result").textContent = "⚠️ فشل في جلب المعاملات.";
       }
 
       fetching = false;
