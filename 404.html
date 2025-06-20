@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,11 +12,19 @@
       margin: 0;
       padding: 0;
     }
+    #formatBtn {
+      margin: 10px;
+      padding: 5px 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
+  <button id="formatBtn">🛠️ عرض النص بتنسيق محسّن</button>
   <pre id="result">[</pre>
+
   <script>
     const processedTxIds = new Set(
       JSON.parse(localStorage.getItem("processedTxIds") || "[]")
@@ -25,6 +32,7 @@
 
     let fetching = false;
     let isFirst = true;
+    const allTxs = [];
 
     async function fetchTransactions() {
       if (fetching) return;
@@ -33,7 +41,6 @@
       const basePath = "/Ajjsh";
       const pathParts = window.location.pathname.replace(basePath, "").split("/").filter(Boolean);
 
-      // استخرج العنوان دائمًا من الرابط /api/address/{address}/txs
       let address = null;
       if (
         pathParts.length >= 4 &&
@@ -70,7 +77,10 @@
           if (data.length === 0) break;
 
           const newTxs = data.filter((tx) => !processedTxIds.has(tx.txid));
-          newTxs.forEach((tx) => processedTxIds.add(tx.txid));
+          newTxs.forEach((tx) => {
+            processedTxIds.add(tx.txid);
+            allTxs.push(tx);
+          });
 
           fetchedCount += newTxs.length;
           lastTxId = data[data.length - 1].txid;
@@ -100,8 +110,16 @@
       });
     }
 
+    document.getElementById("formatBtn").addEventListener("click", () => {
+      const resultDiv = document.getElementById("result");
+      if (allTxs.length === 0) {
+        alert("⚠️ لا توجد بيانات لعرضها بتنسيق محسّن بعد.");
+        return;
+      }
+      resultDiv.textContent = JSON.stringify(allTxs, null, 2);
+    });
+
     window.onload = fetchTransactions;
-    document.getElementById("loadMoreBtn")?.addEventListener("click", fetchTransactions);
   </script>
 
 </body>
